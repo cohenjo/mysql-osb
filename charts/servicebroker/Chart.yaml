@@ -1,0 +1,3 @@
+name: mysql-broker
+description: a chart for the mysql-broker
+version: 0.0.1

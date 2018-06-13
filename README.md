@@ -1,4 +1,4 @@
-# OSB Starter Pack
+# MySQL OSB - built using OSB Starter Pack
 
 [![Build Status](https://travis-ci.org/cohenjo/mysql-osb.svg?branch=master)](https://travis-ci.org/cohenjo/mysql-osb "Travis")
 

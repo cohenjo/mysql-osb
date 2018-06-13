@@ -2,7 +2,7 @@
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ClusterServiceBroker
 metadata:
-  name: broker-skeleton
+  name: mysql-broker
   annotations:
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "5"

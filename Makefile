@@ -30,7 +30,7 @@ push: image ## Pushes the image to dockerhub, REQUIRES SPECIAL PERMISSION
 	$(SUDO_CMD) docker push "$(IMAGE):$(TAG)"
 
 deploy-helm: image ## Deploys image with helm
-	helm upgrade --install broker-skeleton --namespace broker-skeleton \
+	helm upgrade --install mysql-broker --namespace mysql-broker \
 	charts/servicebroker \
 	--set image="$(IMAGE):$(TAG)",imagePullPolicy="$(PULL)"
 

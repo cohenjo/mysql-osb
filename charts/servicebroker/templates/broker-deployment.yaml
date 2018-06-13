@@ -22,7 +22,7 @@ spec:
     spec:
       serviceAccount: {{ template "fullname" . }}-service
       containers:
-      - name: service-broker-skeleton
+      - name: service-mysql-broker
         image: {{ .Values.image }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         command:
@@ -66,7 +66,7 @@ spec:
       - name: mysql-osb-ssl
         secret:
           defaultMode: 420
-          secretName: broker-skeleton-broker-skeleton-mysql-osb-cert
+          secretName: mysql-broker-mysql-broker-mysql-osb-cert
           items:
           - key: tls.crt
             path: starterpack.crt

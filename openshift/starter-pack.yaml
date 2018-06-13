@@ -1,44 +1,44 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: osb-starter-pack
+  name: mysql-osb
 objects:
 
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
-    name: osb-starter-pack-client
+    name: mysql-osb-client
 
 - kind: Secret
   apiVersion: v1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
     annotations:
-      kubernetes.io/service-account.name: osb-starter-pack-client
+      kubernetes.io/service-account.name: mysql-osb-client
   type: kubernetes.io/service-account-token
 
 - apiVersion: servicecatalog.k8s.io/v1beta1
   kind: ClusterServiceBroker
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
   spec:
-    url: https://osb-starter-pack.osb-starter-pack.svc.cluster.local
+    url: https://mysql-osb.mysql-osb.svc.cluster.local
     caBundle: ${BROKER_CA_CERT}
     authInfo:
       bearer:
         secretRef:
           namespace: ${NAMESPACE}
-          name: osb-starter-pack
+          name: mysql-osb
 
 - kind: ServiceAccount
   apiVersion: v1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
 
 - kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
   rules:
   - apiGroups: ["authentication.k8s.io"]
     resources: ["tokenreviews"]
@@ -50,7 +50,7 @@ objects:
 - kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: access-osb-starter-pack
+    name: access-mysql-osb
   rules:
   - nonResourceURLs: ["/v2", "/v2/*"]
     verbs: ["GET", "POST", "PUT", "PATCH", "DELETE"]
@@ -58,38 +58,38 @@ objects:
 - kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
   subjects:
     - kind: ServiceAccount
-      name: osb-starter-pack
+      name: mysql-osb
       namespace: ${NAMESPACE}
   roleRef:
     kind: ClusterRole
-    name: osb-starter-pack
+    name: mysql-osb
 
 - kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1beta1
   metadata:
-    name: osb-starter-pack-client
+    name: mysql-osb-client
   subjects:
     - kind: ServiceAccount
-      name: osb-starter-pack-client
+      name: mysql-osb-client
       namespace: ${NAMESPACE}
   roleRef:
     kind: ClusterRole
-    name: access-osb-starter-pack
+    name: access-mysql-osb
 
 - kind: Service
   apiVersion: v1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
     annotations:
-      service.alpha.openshift.io/serving-cert-secret-name: 'osb-starter-pack-ssl'
+      service.alpha.openshift.io/serving-cert-secret-name: 'mysql-osb-ssl'
     labels:
-      app: osb-starter-pack
+      app: mysql-osb
   spec:
     selector:
-      app: osb-starter-pack
+      app: mysql-osb
     ports:
     - protocol: TCP
       port: 443
@@ -97,22 +97,22 @@ objects:
 - kind: Deployment
   apiVersion: extensions/v1beta1
   metadata:
-    name: osb-starter-pack
+    name: mysql-osb
     labels:
-      app: osb-starter-pack
+      app: mysql-osb
   spec:
     replicas: 1
     selector:
       matchLabels:
-        app: osb-starter-pack
+        app: mysql-osb
     template:
       metadata:
         labels:
-          app: osb-starter-pack
+          app: mysql-osb
       spec:
-        serviceAccount: osb-starter-pack
+        serviceAccount: mysql-osb
         containers:
-        - name: service-osb-starter-pack
+        - name: service-mysql-osb
           image: ${IMAGE}
           imagePullPolicy: IfNotPresent
           command:
@@ -124,9 +124,9 @@ objects:
           - "4"
           - --logtostderr
           - --tls-cert-file
-          - "/var/run/osb-starter-pack/starterpack.crt"
+          - "/var/run/mysql-osb/starterpack.crt"
           - --tls-private-key-file
-          - "/var/run/osb-starter-pack/starterpack.key"
+          - "/var/run/mysql-osb/starterpack.key"
           - --authenticate-k8s-token
           ports:
           - containerPort: 8443
@@ -141,14 +141,14 @@ objects:
             successThreshold: 1
             timeoutSeconds: 2
           volumeMounts:
-          - mountPath: /var/run/osb-starter-pack
-            name: osb-starter-pack-ssl
+          - mountPath: /var/run/mysql-osb
+            name: mysql-osb-ssl
             readOnly: true
         volumes:
-        - name: osb-starter-pack-ssl
+        - name: mysql-osb-ssl
           secret:
             defaultMode: 420
-            secretName: osb-starter-pack-ssl
+            secretName: mysql-osb-ssl
             items:
             - key: tls.crt
               path: starterpack.crt
@@ -160,7 +160,7 @@ parameters:
   displayName: Image name
   name: IMAGE
   required: true
-  value: quay.io/osb-starter-pack/servicebroker:latest
+  value: quay.io/mysql-osb/servicebroker:latest
 
 - description: base64 encoded SSL CA Certificate
   displayName: base64 encoded SSL CA Certificate
@@ -171,4 +171,4 @@ parameters:
 - description: Namespace that the starter pack is deployed to
   displayName: Namespace
   name: NAMESPACE
-  value: osb-starter-pack
+  value: mysql-osb

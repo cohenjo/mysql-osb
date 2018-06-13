@@ -1,6 +1,6 @@
 # OSB Starter Pack
 
-[![Build Status](https://travis-ci.org/pmorie/osb-starter-pack.svg?branch=master)](https://travis-ci.org/pmorie/osb-starter-pack "Travis")
+[![Build Status](https://travis-ci.org/cohenjo/mysql-osb.svg?branch=master)](https://travis-ci.org/cohenjo/mysql-osb "Travis")
 
 A go quickstart for creating service brokers that implement the [Open Service
 Broker API](https://github.com/openservicebrokerapi/servicebroker) based on
@@ -39,19 +39,19 @@ deploy and begin iterating on.
 ### Get the project
 
 ```console
-$ go get github.com/pmorie/osb-starter-pack/cmd/servicebroker
+$ go get github.com/cohenjo/mysql-osb/cmd/servicebroker
 ```
 
 Or clone the repo:
 
 ```console
-$ cd $GOPATH/src && mkdir -p github.com/pmorie && cd github.com/pmorie && git clone git://github.com/pmorie/osb-starter-pack
+$ cd $GOPATH/src && mkdir -p github.com/pmorie && cd github.com/pmorie && git clone git://github.com/cohenjo/mysql-osb
 ```
 
 Change into the project directory:
 
 ```console
-$ cd $GOPATH/src/github.com/pmorie/osb-starter-pack
+$ cd $GOPATH/src/github.com/cohenjo/mysql-osb
 ```
 
 ### Deploy broker using Helm

@@ -45,9 +45,9 @@ spec:
         - "5"
         - -logtostderr
         - --tls-cert-file
-        - "/var/run/osb-starter-pack/starterpack.crt"
+        - "/var/run/mysql-osb/starterpack.crt"
         - --tls-private-key-file
-        - "/var/run/osb-starter-pack/starterpack.key"
+        - "/var/run/mysql-osb/starterpack.key"
         ports:
         - containerPort: 8443
         readinessProbe:
@@ -59,14 +59,14 @@ spec:
           successThreshold: 1
           timeoutSeconds: 2
         volumeMounts:
-        - mountPath: /var/run/osb-starter-pack
-          name: osb-starter-pack-ssl
+        - mountPath: /var/run/mysql-osb
+          name: mysql-osb-ssl
           readOnly: true
       volumes:
-      - name: osb-starter-pack-ssl
+      - name: mysql-osb-ssl
         secret:
           defaultMode: 420
-          secretName: broker-skeleton-broker-skeleton-osb-starter-pack-cert
+          secretName: broker-skeleton-broker-skeleton-mysql-osb-cert
           items:
           - key: tls.crt
             path: starterpack.crt

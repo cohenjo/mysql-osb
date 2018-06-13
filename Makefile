@@ -3,19 +3,19 @@ ifdef USE_SUDO_FOR_DOCKER
 	SUDO_CMD = sudo
 endif
 
-IMAGE ?= quay.io/osb-starter-pack/servicebroker
+IMAGE ?= cohenjo/broker
 TAG ?= $(shell git describe --tags --always)
 PULL ?= IfNotPresent
 
 build: ## Builds the starter pack
-	go build -i github.com/pmorie/osb-starter-pack/cmd/servicebroker
+	go build -i github.com/cohenjo/mysql-osb/cmd/servicebroker
 
 test: ## Runs the tests
 	go test -v $(shell go list ./... | grep -v /vendor/ | grep -v /test/)
 
 linux: ## Builds a Linux executable
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-	go build -o servicebroker-linux --ldflags="-s" github.com/pmorie/osb-starter-pack/cmd/servicebroker
+	go build -o servicebroker-linux --ldflags="-s" github.com/cohenjo/mysql-osb/cmd/servicebroker
 
 image: linux ## Builds a Linux based image
 	cp servicebroker-linux image/servicebroker
@@ -35,7 +35,7 @@ deploy-helm: image ## Deploys image with helm
 	--set image="$(IMAGE):$(TAG)",imagePullPolicy="$(PULL)"
 
 deploy-openshift: image ## Deploys image to openshift
-	oc project osb-starter-pack || oc new-project osb-starter-pack
+	oc project mysql-osb || oc new-project mysql-osb
 	openshift/deploy.sh $(IMAGE):$(TAG)
 
 create-ns: ## Cleans up the namespaces

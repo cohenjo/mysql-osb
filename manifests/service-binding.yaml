@@ -1,8 +1,11 @@
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceBinding
 metadata:
-  name: example-starter-pack-service-binding
+  name: mysql-editor-binding
   namespace: test-ns
 spec:
   instanceRef:
-    name: example-starter-pack-service
+    name: mysql-editor-instance
+  parameters:
+    artifact: com.company.editor
+    cluster: editor 

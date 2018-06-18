@@ -118,15 +118,20 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 
 	k8sClient, err := getKubernetesClient("")
 	if err != nil {
+		glog.V(4).Infof("can't create a client - PANIC")
 		panic(err.Error())
 	}
 
 	ret := GenerateHelloService()
 	fmt.Println(ret.GetName())
-	ret.SetName(request.InstanceID)
+	ret.SetName("mysql-" + request.InstanceID)
+	ret.Spec.Ports = []api_v1.ServicePort{
+		api_v1.ServicePort{Port: 3306},
+	}
 	fmt.Println(ret.GetName())
 	svc, err := k8sClient.CoreV1().Services("test-ns").Create(&ret)
 	if err != nil {
+		glog.V(4).Infof("can't create a service - PANIC")
 		panic(err.Error())
 	}
 	glog.V(4).Infof("Debug: service status %s\n", svc.Status.String())
@@ -146,6 +151,7 @@ func GenerateHelloService() (retVal api_v1.Service) {
 	if err != nil {
 		print(err)
 	}
+	glog.V(4).Infof("Debug: service.json: %s\n", fileContent)
 	err = json.Unmarshal(fileContent, &parsedData)
 
 	if err != nil {

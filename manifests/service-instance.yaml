@@ -1,11 +1,20 @@
 apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceInstance
 metadata:
-  name: example-starter-pack-service
+  name: mysql-editor-instance
   namespace: test-ns
 spec:
-  clusterServiceClassExternalName: example-starter-pack-service
+  clusterServiceClassExternalName: mysql-artifact-service
   clusterServicePlanExternalName: default
   parameters:
-    param-1: value-1
-    param-2: value-2
+    DeploymentType: Physical
+    Size: 30
+    Cluster: editor
+    Artifact: com.company.editor.html-editor
+    BI: false
+    Backup: true
+    BackupWindow: 1 week
+    RAM: 32
+    CPU: 8
+    Segment: editor
+    NumOfReplicas: 3

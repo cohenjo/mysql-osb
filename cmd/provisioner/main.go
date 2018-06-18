@@ -79,31 +79,27 @@ func runWithContext(ctx context.Context) error {
 		return err
 	}
 
-	ret := GenerateHelloService()
+	cfm := GenerateMySQLConfigMap()
+	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
+	if err != nil {
+		glog.V(4).Infof("can't create a config map - PANIC")
+		fmt.Println("fuck")
+		panic(err.Error())
+	}
+
+	ret := GenerateHelloDeployment()
 	fmt.Println(ret.GetName())
 	ret.SetName("others-mysql")
 	fmt.Println(ret.GetName())
-	k8sClient.CoreV1().Services("test-ns").Create(&ret)
 
-	// if options.AuthenticateK8SToken {
-	// 	// get k8s client
-	// 	k8sClient, err := getKubernetesClient(options.KubeConfig)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	// Create a User Info Authorizer.
-	// 	authz := middleware.SARUserInfoAuthorizer{
-	// 		SAR: k8sClient.AuthorizationV1().SubjectAccessReviews(),3
-	// 	}
-	// 	// create TokenReviewMiddleware
-	// 	tr := middleware.TokenReviewMiddleware{
-	// 		TokenReview: k8sClient.Authentication().TokenReviews(),
-	// 		Authorizer:  authz,
-	// 	}
-	// 	// Use TokenReviewMiddleware.
-	// 	s.Router.Use(tr.Middleware)
-	// }
+	sts, err := k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&ret)
+	if err != nil {
+		glog.V(4).Infof("can't create a service - PANIC")
+		fmt.Println("fuck")
+		panic(err.Error())
+	}
 
+	fmt.Println(sts.Status)
 	glog.Infof("Starting broker!")
 
 	return nil
@@ -154,7 +150,27 @@ func GenerateHelloDeployment() (retVal v1beta1.StatefulSet) {
 	var fileContent []byte
 	parsedData := v1beta1.StatefulSet{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("templates", "hello.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql.json"))
+	if err != nil {
+		print(err)
+	}
+	err = json.Unmarshal(fileContent, &parsedData)
+
+	if err != nil {
+		print(err)
+	}
+
+	return parsedData
+}
+
+/**
+GenerateMySQLConfigMap generates the configuration map for a new cluster
+*/
+func GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
+	var fileContent []byte
+	parsedData := api_v1.ConfigMap{}
+
+	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql-configmap.json"))
 	if err != nil {
 		print(err)
 	}

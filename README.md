@@ -2,6 +2,17 @@
 
 [![Build Status](https://travis-ci.org/cohenjo/mysql-osb.svg?branch=master)](https://travis-ci.org/cohenjo/mysql-osb "Travis")
 
+A service broker to order MySQL clusters and bind them to artifacts.
+in a microservices oriented architecture DBAs often find themselves managing houndres if not thousands of clusters.
+this requires a strong automation to spin up lots of small clusters - k8s is useful for such use-cases.
+
+This broker spnins up MySQL clusters in statful-sets which is exposes to the application artifacts according to usage bindings.
+this allows a many-many binding configuration which allows for greater flexability.
+
+the broker stores the provision and binding data in local MySQL (which can easily be backedup) and on etcd.
+the etcd is also used to provide cross-clusters comunications allowing to spin clusters between multiple k8s deployments (if they share an etcd cluster)
+
+
 A go quickstart for creating service brokers that implement the [Open Service
 Broker API](https://github.com/openservicebrokerapi/servicebroker) based on
 [`osb-broker-lib`](https://github.com/pmorie/osb-broker-lib). Broker authors
@@ -11,13 +22,13 @@ project.
 
 ## Who should use this project?
 
-You should use this project if you're looking for a quick way to implement an
-Open Service Broker and start iterating on it.
+You should use this project if you manage houndreds of clusters and want to do it easier.
 
 ## Prerequisites
 
 You'll need:
 
+- A [`Brain`](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRl5PGwfN1Q-sw20OCNKqD8xWdPNj_BwNnqdEK7bE9eiV_2NT3FGQ)
 - [`go`](https://golang.org/dl/)
 - A running [Kubernetes](https://github.com/kubernetes/kubernetes) (or [openshift](https://github.com/openshift/origin/)) cluster
 - The [service-catalog](https://github.com/kubernetes-incubator/service-catalog)

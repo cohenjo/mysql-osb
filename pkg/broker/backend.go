@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // import the mysql driver
 	"github.com/golang/glog"
 
+	"k8s.io/api/apps/v1beta1"
 	api_v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -136,8 +137,68 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 	}
 	glog.V(4).Infof("Debug: service status %s\n", svc.Status.String())
 
+	cfm := GenerateMySQLConfigMap()
+	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
+	if err != nil {
+		glog.V(4).Infof("can't create a config map - PANIC")
+		fmt.Println("fuck")
+		panic(err.Error())
+	}
+
+	retss := GenerateStatefulSets()
+	fmt.Println(retss.GetName())
+	ret.SetName("others-mysql")
+	fmt.Println(retss.GetName())
+
+	_, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
+	if err != nil {
+		glog.V(4).Infof("can't create a service - PANIC")
+		fmt.Println("fuck")
+		panic(err.Error())
+	}
+
 	glog.V(4).Infof("Debug: Done")
 
+}
+
+/*
+GenerateStatefulSets generates something
+*/
+func GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
+	var fileContent []byte
+	parsedData := v1beta1.StatefulSet{}
+
+	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql.json"))
+	if err != nil {
+		print(err)
+	}
+	err = json.Unmarshal(fileContent, &parsedData)
+
+	if err != nil {
+		print(err)
+	}
+
+	return parsedData
+}
+
+/**
+GenerateMySQLConfigMap generates the configuration map for a new cluster
+*/
+func GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
+	var fileContent []byte
+	parsedData := api_v1.ConfigMap{}
+
+	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql-configmap.json"))
+	if err != nil {
+		print(err)
+	}
+	err = json.Unmarshal(fileContent, &parsedData)
+
+	if err != nil {
+		print(err)
+	}
+
+	return parsedData
 }
 
 /*

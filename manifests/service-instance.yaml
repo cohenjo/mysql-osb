@@ -9,7 +9,7 @@ spec:
   parameters:
     DeploymentType: Physical
     Size: 30
-    Cluster: editor
+    cluster: editor
     Artifact: com.company.editor.html-editor
     BI: false
     Backup: true

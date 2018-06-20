@@ -60,7 +60,7 @@ Size integer
 	}
 }
 
-func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
+func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
 	glog.V(4).Infof("InstanceL %s !\n", request.InstanceID)
 	glog.V(4).Infof("service:  %s !\n", request.ServiceID)
@@ -123,13 +123,8 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 		panic(err.Error())
 	}
 
-	ret := GenerateHelloService()
-	fmt.Println(ret.GetName())
-	ret.SetName("mysql-" + request.InstanceID)
-	ret.Spec.Ports = []api_v1.ServicePort{
-		api_v1.ServicePort{Port: 3306},
-	}
-	fmt.Println(ret.GetName())
+	ret := i.GenerateService()
+
 	svc, err := k8sClient.CoreV1().Services("test-ns").Create(&ret)
 	if err != nil {
 		glog.V(4).Infof("can't create a service - PANIC")
@@ -137,7 +132,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 	}
 	glog.V(4).Infof("Debug: service status %s\n", svc.Status.String())
 
-	cfm := GenerateMySQLConfigMap()
+	cfm := i.GenerateMySQLConfigMap()
 	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
 	if err != nil {
 		glog.V(4).Infof("can't create a config map - PANIC")
@@ -145,17 +140,14 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 		panic(err.Error())
 	}
 
-	retss := GenerateStatefulSets()
-	fmt.Println(retss.GetName())
-	ret.SetName("others-mysql")
-	fmt.Println(retss.GetName())
+	// retss := i.GenerateStatefulSets()
 
-	_, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
-	if err != nil {
-		glog.V(4).Infof("can't create a service - PANIC")
-		fmt.Println("fuck")
-		panic(err.Error())
-	}
+	// _, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
+	// if err != nil {
+	// 	glog.V(4).Infof("can't create a service - PANIC")
+	// 	fmt.Println("fuck")
+	// 	panic(err.Error())
+	// }
 
 	glog.V(4).Infof("Debug: Done")
 
@@ -164,7 +156,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest) {
 /*
 GenerateStatefulSets generates something
 */
-func GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
+func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	var fileContent []byte
 	parsedData := v1beta1.StatefulSet{}
 
@@ -177,6 +169,13 @@ func GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	if err != nil {
 		print(err)
 	}
+	fmt.Println(parsedData.GetName())
+	parsedData.SetName("mysql-" + i.Params["cluster"].(string))
+	var labels map[string]string
+	labels = make(map[string]string)
+	labels["app"] = "mysql-" + i.Params["cluster"].(string)
+	parsedData.SetLabels(labels)
+	fmt.Println(parsedData.GetName())
 
 	return parsedData
 }
@@ -184,7 +183,7 @@ func GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 /**
 GenerateMySQLConfigMap generates the configuration map for a new cluster
 */
-func GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
+func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	var fileContent []byte
 	parsedData := api_v1.ConfigMap{}
 
@@ -204,7 +203,7 @@ func GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 /*
 GenerateHelloService generates something
 */
-func GenerateHelloService() (retVal api_v1.Service) {
+func (i *dbInstance) GenerateService() (retVal api_v1.Service) {
 	var fileContent []byte
 	parsedData := api_v1.Service{}
 
@@ -218,6 +217,16 @@ func GenerateHelloService() (retVal api_v1.Service) {
 	if err != nil {
 		print(err)
 	}
+
+	parsedData.SetName("mysql-" + i.Params["cluster"].(string))
+	var labels map[string]string
+	labels = make(map[string]string)
+	labels["app"] = "mysql-" + i.Params["cluster"].(string)
+	parsedData.SetLabels(labels)
+	parsedData.Spec.Ports = []api_v1.ServicePort{
+		api_v1.ServicePort{Port: 3306},
+	}
+	fmt.Println(parsedData.GetName())
 
 	return parsedData
 }

@@ -125,7 +125,7 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 		}
 	}
 
-	b.order(request)
+	b.order(request, exampleInstance)
 
 	b.instances[request.InstanceID] = exampleInstance
 

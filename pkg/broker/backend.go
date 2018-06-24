@@ -136,7 +136,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 	cfm := i.GenerateMySQLConfigMap()
 	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
 	if err != nil {
-		glog.V(4).Infof("can't create a config map - PANIC")
+		glog.V(4).Infof("can't create a config map - PANIC, %s\n", err.Error())
 		// fmt.Println("fuck")
 		// panic(err.Error())
 		glog.V(4).Infof("can't create a service - Don't panic it exists")
@@ -162,9 +162,11 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	var fileContent []byte
 	parsedData := v1beta1.StatefulSet{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("templates", "mysql.json"))
 	if err != nil {
 		print(err)
+		glog.V(4).Infof("Failed to read file! - Panic")
+		panic(err.Error())
 	}
 	err = json.Unmarshal(fileContent, &parsedData)
 
@@ -189,16 +191,23 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	var fileContent []byte
 	parsedData := api_v1.ConfigMap{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("image/templates", "mysql-configmap.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("templates", "mysql_configmap.json"))
 	if err != nil {
+		glog.V(4).Infof("Failed to read config map file! - Panic")
 		print(err)
 	}
 	err = json.Unmarshal(fileContent, &parsedData)
 
 	if err != nil {
+		glog.V(4).Infof("Failed to UnMarshal! - Panic")
 		print(err)
 	}
-
+	parsedData.SetName("mysql-" + i.Params["cluster"].(string))
+	glog.V(4).Infof("################################## JSON content ##################################")
+	glog.V(4).Infof(string(fileContent))
+	glog.V(4).Infof("################################## Marshel to JSON ##################################")
+	glog.V(4).Infof(parsedData.String())
+	glog.V(4).Infof("################################## Done ##################################")
 	return parsedData
 }
 

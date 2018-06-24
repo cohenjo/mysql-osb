@@ -142,14 +142,14 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 		glog.V(4).Infof("can't create a service - Don't panic it exists")
 	}
 
-	// retss := i.GenerateStatefulSets()
+	retss := i.GenerateStatefulSets()
 
-	// _, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
-	// if err != nil {
-	// 	glog.V(4).Infof("can't create a service - PANIC")
-	// 	fmt.Println("fuck")
-	// 	panic(err.Error())
-	// }
+	_, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
+	if err != nil {
+		glog.V(4).Infof("can't create a service - PANIC")
+		fmt.Println("fuck")
+		panic(err.Error())
+	}
 
 	glog.V(4).Infof("Debug: Done")
 
@@ -162,7 +162,7 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	var fileContent []byte
 	parsedData := v1beta1.StatefulSet{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("templates", "mysql.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("/opt/servicebroker/templates", "mysql.json"))
 	if err != nil {
 		print(err)
 		glog.V(4).Infof("Failed to read file! - Panic")
@@ -181,6 +181,18 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	parsedData.SetLabels(labels)
 	fmt.Println(parsedData.GetName())
 
+	glog.V(4).Infof("#######################################################################################################")
+	glog.V(4).Infof("##################################### VOLUMES #########################################################")
+	for _, vol := range parsedData.Spec.Template.Spec.Volumes {
+		glog.V(4).Infof(vol.String())
+		if vol.Name == "config-map" {
+			glog.V(4).Infof("found the config map!!!!!!!!!!!!!!! ###########################################")
+			vol.ConfigMap.Name = "mysql-" + i.Params["cluster"].(string)
+		}
+	}
+	glog.V(4).Infof("#######################################################################################################")
+	glog.V(4).Infof("#######################################################################################################")
+
 	return parsedData
 }
 
@@ -191,7 +203,7 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	var fileContent []byte
 	parsedData := api_v1.ConfigMap{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("templates", "mysql_configmap.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("/opt/servicebroker/templates", "config.json"))
 	if err != nil {
 		glog.V(4).Infof("Failed to read config map file! - Panic")
 		print(err)
@@ -203,11 +215,10 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 		print(err)
 	}
 	parsedData.SetName("mysql-" + i.Params["cluster"].(string))
-	glog.V(4).Infof("################################## JSON content ##################################")
-	glog.V(4).Infof(string(fileContent))
-	glog.V(4).Infof("################################## Marshel to JSON ##################################")
-	glog.V(4).Infof(parsedData.String())
-	glog.V(4).Infof("################################## Done ##################################")
+	var labels map[string]string
+	labels = make(map[string]string)
+	labels["app"] = "mysql-" + i.Params["cluster"].(string)
+	parsedData.SetLabels(labels)
 	return parsedData
 }
 
@@ -218,7 +229,7 @@ func (i *dbInstance) GenerateService() (retVal api_v1.Service) {
 	var fileContent []byte
 	parsedData := api_v1.Service{}
 
-	fileContent, err := ioutil.ReadFile(path.Join("templates", "service.json"))
+	fileContent, err := ioutil.ReadFile(path.Join("/opt/servicebroker/templates", "service.json"))
 	if err != nil {
 		print(err)
 	}
@@ -234,10 +245,6 @@ func (i *dbInstance) GenerateService() (retVal api_v1.Service) {
 	labels = make(map[string]string)
 	labels["app"] = "mysql-" + i.Params["cluster"].(string)
 	parsedData.SetLabels(labels)
-	parsedData.Spec.Ports = []api_v1.ServicePort{
-		api_v1.ServicePort{Port: 3306},
-	}
-	fmt.Println(parsedData.GetName())
 
 	return parsedData
 }

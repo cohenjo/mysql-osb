@@ -1,3 +1,14 @@
+###################################
+# MysQL OSB namespace
+###################################
+kind: Namespace
+apiVersion: v1
+metadata: 
+  name: {{ .Values.mysql.namespace }}
+  labels: 
+    name: MySQL_OSB_area
+
+---
 {{- if .Values.deployOrchestrator }}
 ###################################
 # Orchestrator Config

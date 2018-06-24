@@ -7,13 +7,11 @@ spec:
   clusterServiceClassExternalName: mysql-artifact-service
   clusterServicePlanExternalName: default
   parameters:
-    DeploymentType: Physical
     Size: 30
     cluster: editor
     Artifact: com.company.editor.html-editor
     BI: false
     Backup: true
-    BackupWindow: 1 week
     RAM: 32
     CPU: 8
     Segment: editor

@@ -181,18 +181,13 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	parsedData.SetLabels(labels)
 	fmt.Println(parsedData.GetName())
 
-	glog.V(4).Infof("#######################################################################################################")
-	glog.V(4).Infof("##################################### VOLUMES #########################################################")
 	for _, vol := range parsedData.Spec.Template.Spec.Volumes {
 		glog.V(4).Infof(vol.String())
 		if vol.Name == "config-map" {
-			glog.V(4).Infof("found the config map!!!!!!!!!!!!!!! ###########################################")
 			vol.ConfigMap.Name = "mysql-" + i.Params["cluster"].(string)
 		}
 	}
-	glog.V(4).Infof("#######################################################################################################")
-	glog.V(4).Infof("#######################################################################################################")
-
+	parsedData.Spec.Selector.MatchLabels = labels
 	return parsedData
 }
 
@@ -245,6 +240,7 @@ func (i *dbInstance) GenerateService() (retVal api_v1.Service) {
 	labels = make(map[string]string)
 	labels["app"] = "mysql-" + i.Params["cluster"].(string)
 	parsedData.SetLabels(labels)
+	parsedData.Spec.Selector = labels
 
 	return parsedData
 }

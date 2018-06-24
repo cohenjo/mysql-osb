@@ -12,8 +12,13 @@ tls:
   key:
 deployClusterServiceBroker: true
 
+deployOrchestrator: true
 mysql:
   namespace: test-ns
   password: password
   storage: 6Gi
   dbname: broker
+
+orchestrator:
+  MySQLTopologyUser: orchestrator
+  MySQLTopologyPassword: 0rch3strat0r1

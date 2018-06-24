@@ -7,7 +7,6 @@ metadata:
   name: {{ .Values.mysql.namespace }}
   labels: 
     name: MySQL_OSB_area
-
 ---
 {{- if .Values.deployOrchestrator }}
 ###################################
@@ -16,12 +15,12 @@ metadata:
 kind: ConfigMap
 apiVersion: v1
 metadata: 
-  name: orch-config,
-  namespace: {{ .Values.mysql.namespace }},
+  name: orch-config
+  namespace: {{ .Values.mysql.namespace }}
   labels: 
     app: orchestrator
 data:
-  orchestrator.conf.json": |-
+  orchestrator.conf.json: |-
     {
       "Debug": false, 
       "ListenAddress": ":3000",
@@ -37,7 +36,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: orchestrator
-  namespace: {{ .Values.mysql.namespace }},
+  namespace: {{ .Values.mysql.namespace }}
   labels:
     app: orchestrator
 spec:

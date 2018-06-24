@@ -13,6 +13,7 @@ tls:
 deployClusterServiceBroker: true
 
 deployOrchestrator: true
+
 mysql:
   namespace: test-ns
   password: password

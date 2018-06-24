@@ -146,9 +146,10 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
 	_, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
 	if err != nil {
-		glog.V(4).Infof("can't create a service - PANIC")
+		glog.V(4).Infof("can't create a StatefulSets - PANIC")
+		glog.V(4).Infof(err.Error())
 		fmt.Println("fuck")
-		panic(err.Error())
+		// panic(err.Error())
 	}
 
 	glog.V(4).Infof("Debug: Done")
@@ -182,12 +183,16 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	fmt.Println(parsedData.GetName())
 
 	for _, vol := range parsedData.Spec.Template.Spec.Volumes {
-		glog.V(4).Infof(vol.String())
 		if vol.Name == "config-map" {
 			vol.ConfigMap.Name = "mysql-" + i.Params["cluster"].(string)
 		}
 	}
 	parsedData.Spec.Selector.MatchLabels = labels
+	glog.V(4).Infof("######################################################################################################")
+	glog.V(4).Infof("######################################################################################################")
+	glog.V(4).Infof(parsedData.String())
+	glog.V(4).Infof("######################################################################################################")
+	glog.V(4).Infof("######################################################################################################")
 	return parsedData
 }
 

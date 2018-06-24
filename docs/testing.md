@@ -49,12 +49,15 @@ This will need a DB - will be create with Helm!
  <!-- kubectl create -f DB_kube/mysql-single.yaml -->
 ( kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mysql.mysql-broker -ppassword)
 
+in ~/Documents/mysql/orchestrator/deployment ==> deploy orchestrator
+
 # Develop
+
 
 ## consider this instead: https://github.com/kubernetes-incubator/service-catalog/blob/master/contrib/pkg/broker/user_provided/controller/controller.go ??
 
- go get github.com/pmorie/osb-starter-pack/cmd/servicebroker
- cd $GOPATH/src/github.com/pmorie/osb-starter-pack
+ go get github.com/cohenjo/mysql-osb
+ cd $GOPATH/src/github.com/cohenjo/mysql-osb
 
 
 <!-- IMAGE=cohenjo/broker TAG=latest make push deploy-helm -->

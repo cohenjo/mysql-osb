@@ -128,7 +128,8 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 	svc, err := k8sClient.CoreV1().Services("test-ns").Create(&ret)
 	if err != nil {
 		glog.V(4).Infof("can't create a service - PANIC")
-		panic(err.Error())
+		// panic(err.Error())
+		glog.V(4).Infof("can't create a service - Don't panic it exists")
 	}
 	glog.V(4).Infof("Debug: service status %s\n", svc.Status.String())
 
@@ -136,8 +137,9 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
 	if err != nil {
 		glog.V(4).Infof("can't create a config map - PANIC")
-		fmt.Println("fuck")
-		panic(err.Error())
+		// fmt.Println("fuck")
+		// panic(err.Error())
+		glog.V(4).Infof("can't create a service - Don't panic it exists")
 	}
 
 	// retss := i.GenerateStatefulSets()

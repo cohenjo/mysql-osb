@@ -188,6 +188,7 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 		}
 	}
 	parsedData.Spec.Selector.MatchLabels = labels
+	parsedData.Spec.Template.ObjectMeta.Labels = labels
 	glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof(parsedData.String())

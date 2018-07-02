@@ -126,6 +126,7 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 	}
 
 	go b.order(request, exampleInstance)
+	go b.etcIt(request, exampleInstance)
 
 	b.instances[request.InstanceID] = exampleInstance
 

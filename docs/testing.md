@@ -104,3 +104,18 @@ kubectl delete clusterservicebrokers mysql-broker
 helm delete --purge mysql-broker
 kubectl delete ns mysql-broker
 kubectl delete ns test-ns
+
+
+
+
+
+
+
+
+to allow no permissions you can use:
+-----------------------------------
+kubectl create clusterrolebinding permissive-binding \
+  --clusterrole=cluster-admin \
+  --user=admin \
+  --user=kubelet \
+  --group=system:serviceaccounts

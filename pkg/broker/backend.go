@@ -60,6 +60,15 @@ Size integer
 	}
 }
 
+func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {
+	glog.V(4).Infof("storing InstanceL in etcd: %s !\n", request.InstanceID)
+	key := fmt.Sprintf("mysql-broker/instance/%s", i.Params["cluster"].(string))
+	value := "cluster info"
+
+	glog.V(4).Infof("put in etcd:  %s, %s !\n", key, value)
+
+}
+
 func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
 	glog.V(4).Infof("InstanceL %s !\n", request.InstanceID)

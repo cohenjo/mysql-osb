@@ -1,0 +1,79 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: "{{ .Release.Name }}"
+        heritage: "{{ .Release.Service }}"
+    spec:
+      serviceAccount: {{ template "fullname" . }}-service
+      containers:
+      - name: service-mysql-broker
+        image: {{ .Values.image }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command:
+        - /opt/servicebroker/servicebroker
+        args:
+        - --port
+        - "8443"
+        {{- if .Values.tls.cert}}
+        - --tlsCert
+        - "{{ .Values.tls.cert }}"
+        {{- end}}
+        {{- if .Values.tls.key}}
+        - --tlsKey
+        - "{{ .Values.tls.key }}"
+        {{- end}}
+        {{- if .Values.authenticate}}
+        - --authenticate-k8s-token
+        {{- end}}
+        - -v
+        - "5"
+        - -logtostderr
+        - --tls-cert-file
+        - "/var/run/mysql-osb/starterpack.crt"
+        - --tls-private-key-file
+        - "/var/run/mysql-osb/starterpack.key"
+        ports:
+        - containerPort: 8443
+        readinessProbe:
+          tcpSocket:
+            port: 8443
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        volumeMounts:
+        - mountPath: /var/run/mysql-osb
+          name: mysql-osb-ssl
+          readOnly: true
+      volumes:
+      - name: mysql-osb-ssl
+        secret:
+          defaultMode: 420
+          secretName: mysql-broker-mysql-broker-mysql-osb-cert
+          items:
+          - key: tls.crt
+            path: starterpack.crt
+          - key: tls.key
+            path: starterpack.key

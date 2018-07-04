@@ -30,8 +30,8 @@ push: image ## Pushes the image to dockerhub, REQUIRES SPECIAL PERMISSION
 	$(SUDO_CMD) docker push "$(IMAGE):$(TAG)"
 
 deploy-helm: image ## Deploys image with helm
-	helm upgrade --install mysql-broker --namespace mysql-broker \
-	charts/servicebroker \
+	helm upgrade --install mysql-broker --force --recreate-pods  --debug  --namespace mysql-broker \
+	charts/mysql-osb \
 	--set image="$(IMAGE):$(TAG)",imagePullPolicy="$(PULL)"
 
 deploy-openshift: image ## Deploys image to openshift

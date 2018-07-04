@@ -5,6 +5,7 @@ minikube start  --memory=2048 --cpus=4 --hyperv-virtual-switch="primary-virtual-
 
 <!-- kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 minikube dashboard -->
+eval $(minikube docker-env)
 
 ## setup rbac
 <!-- kubectl create serviceaccount tiller --namespace kube-system -->
@@ -49,7 +50,23 @@ This will need a DB - will be create with Helm!
  <!-- kubectl create -f DB_kube/mysql-single.yaml -->
 ( kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mysql.mysql-broker -ppassword)
 
-in ~/Documents/mysql/orchestrator/deployment ==> deploy orchestrator
+<!-- in ~/Documents/mysql/orchestrator/deployment ==> deploy orchestrator -->
+
+For development we also use local ETCD which will be installed using the etcd-operator
+`helm install stable/etcd-operator --name etc-oper --namespace mysql-broker`
+(to clean use: `helm delete --purge etc-oper`)
+
+If you are working with minikube locally, create a nodePort service and test that etcd is responding:
+```
+kubectl create -f docs/etcd-cluster.yaml
+kubectl create -f docs/etcd-cluster-service.json
+export ETCDCTL_API=3
+export ETCDCTL_ENDPOINTS=$(minikube service etcd-cluster-client-service --url -n mysql-broker)
+etcdctl put foo bar
+etcdctl get foo
+```
+Destroy the etcd cluster:
+kubectl delete -f docs/etcd-cluster.yaml
 
 # Develop
 
@@ -74,11 +91,18 @@ svcat describe class mysql-artifact-service
 svcat get plans
 svcat describe plan mysql-artifact-service/default
 
+To update the image we can use:
+```bash
+make image push
+kubectl  set image deployment  mysql-broker-mysql-broker service-mysql-broker=cohenjo/broker:dcc0d48 --record -n mysql-broker
+kubectl rollout status deployment mysql-broker-mysql-broker -n mysql-broker
+```
+
 
 # test the service
 
-kubectl create namespace test-ns
-kubectl create -f DB_kube/db_broker/mysql_instance.yaml
+
+kubectl create -f ./manifests/service-instance.yaml
 
 svcat describe instance -n test-ns mysql-instance
 
@@ -90,24 +114,20 @@ kubectl get secrets -n test-ns
 https://broker-skeleton-broker-skeleton.broker-skeleton.svc.cluster.local
 
 # Cleanup
-svcat unbind -n test-ns mysql-instance
-<!-- kubectl delete -n test-ns servicebindings mysql-binding -->
 
-svcat deprovision -n test-ns mysql-instance
+<!-- kubectl delete -n test-ns servicebindings mysql-binding -->
 <!-- kubectl delete -n test-ns serviceinstances mysql-instance -->
 
-kubectl delete -n mysql-broker  svc mysql
-kubectl delete -n mysql-broker  pvc mysql-broker-pvclaim
-
+svcat unbind -n test-ns mysql-instance
+svcat deprovision -n test-ns mysql-instance
 
 kubectl delete clusterservicebrokers mysql-broker
+
 helm delete --purge mysql-broker
-kubectl delete ns mysql-broker
-kubectl delete ns test-ns
+helm delete --purge etc-oper
 
-
-
-
+kubectl delete ns mysql-broker 
+kubectl delete ns test-ns 
 
 
 

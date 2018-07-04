@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -125,8 +126,9 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 		}
 	}
 
+	b.etcIt(request, exampleInstance)
 	go b.order(request, exampleInstance)
-	go b.etcIt(request, exampleInstance)
+	// go
 
 	b.instances[request.InstanceID] = exampleInstance
 
@@ -246,4 +248,12 @@ type dbInstance struct {
 
 func (i *dbInstance) Match(other *dbInstance) bool {
 	return reflect.DeepEqual(i, other)
+}
+
+func (i *dbInstance) String() (string, error) {
+	b, err := json.Marshal(i)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

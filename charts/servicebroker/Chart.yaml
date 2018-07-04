@@ -1,9 +1,0 @@
-name: mysql-broker
-description: a chart for the mysql-broker
-version: 0.0.1
-
-sources:
-  - https://github.com/cohenjo/mysql-osb
-maintainers:
-  - name: Jony Vesterman Cohen
-    email: jony.cohenjo@gmail.com

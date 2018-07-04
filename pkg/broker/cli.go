@@ -11,6 +11,7 @@ type Options struct {
 	CatalogPath        string
 	Async              bool
 	DBConnectionString string
+	EtcdEndpoints      string
 }
 
 // AddFlags is a hook called to initialize the CLI flags for broker options.
@@ -20,4 +21,5 @@ func AddFlags(o *Options) {
 	flag.StringVar(&o.CatalogPath, "catalogPath", "", "The path to the catalog")
 	flag.BoolVar(&o.Async, "async", false, "Indicates whether the broker is handling the requests asynchronously.")
 	flag.StringVar(&o.DBConnectionString, "db-connection", "root:password@tcp(mysql:3306)/broker", "database connection")
+	flag.StringVar(&o.EtcdEndpoints, "etcd-endpoint", "etcd-cluster-client:2379", "etcd endpoint")
 }

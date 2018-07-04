@@ -63,10 +63,31 @@ Size integer
 func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {
 	glog.V(4).Infof("storing InstanceL in etcd: %s !\n", request.InstanceID)
 	key := fmt.Sprintf("mysql-broker/instance/%s", i.Params["cluster"].(string))
-	value := "cluster info"
+	value, _ := i.String()
 
+	glog.V(4).Infof("######################################################################################################")
+	glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof("put in etcd:  %s, %s !\n", key, value)
+	client := NewEtcdClient(3)
+	glog.V(4).Infof("####################################### Created client ###################################")
+	defer client.Close()
+	err := client.Set(key, value)
+	if err != nil {
+		glog.V(4).Infof("error with etcd !\n")
+		// panic(err.Error())
+	}
 
+	glog.V(4).Infof("Done")
+
+	gfe, err := client.Get(key)
+	if err != nil {
+		glog.V(4).Infof("error with etcd !\n")
+		// panic(err.Error())
+	}
+	glog.V(4).Infof("got: %s \n", gfe)
+	glog.V(4).Infof("Done")
+	glog.V(4).Infof("######################################################################################################")
+	glog.V(4).Infof("######################################################################################################")
 }
 
 func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
@@ -199,9 +220,9 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	parsedData.Spec.Selector.MatchLabels = labels
 	parsedData.Spec.Template.ObjectMeta.Labels = labels
 	glog.V(4).Infof("######################################################################################################")
-	glog.V(4).Infof("######################################################################################################")
-	glog.V(4).Infof(parsedData.String())
-	glog.V(4).Infof("######################################################################################################")
+	// glog.V(4).Infof("######################################################################################################")
+	// glog.V(4).Infof(parsedData.String())
+	// glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof("######################################################################################################")
 	return parsedData
 }

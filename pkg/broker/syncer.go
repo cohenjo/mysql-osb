@@ -29,7 +29,7 @@ type EtcdWatcher struct {
 	cancel   context.CancelFunc
 	log      *logrus.Entry
 
-	dataStore  *types.DataStore
+	// dataStore  *types.DataStore
 	objectType types.ObjectType
 
 	lock sync.RWMutex
@@ -48,9 +48,9 @@ func GenerateEtcdClient(addressPool []string) (retVal *clientv3.Client, err erro
 	return cli, err
 }
 
-func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
+func NewEtcdClient2(addressPool []string, numOfRetries int) (retVal *EtcdClientAPIv3) {
 	log := logrus.WithField("obj", "etcdv3")
-	addressPool := []string{"etcd-cluster-client:2379"}
+
 	client, err := GenerateEtcdClient(addressPool)
 	if err != nil {
 		glog.V(4).Infof("error with etcd, %s !\n", err.Error())
@@ -66,6 +66,37 @@ func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
 	retValObj.timeout = time.Second * 20
 	retValObj.NumOfRetries = numOfRetries
 	retVal = retValObj
+	return retVal
+}
+
+func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
+	addressPool := []string{"etcd-cluster-client:2379"}
+	return NewEtcdClient2(addressPool, numOfRetries)
+}
+
+func NewEtcdWatcher(clientPar *EtcdClientAPIv3, objectTypePar types.ObjectType, indexPar uint64, callbackPar types.CallbackHandler) (retVal *EtcdWatcher) {
+	var folder string
+	folder = GetFolderName(objectTypePar)
+
+	retVal = NewEtcdWatcherWithKey(clientPar, folder, indexPar, callbackPar)
+	retVal.objectType = objectTypePar
+	return retVal
+}
+
+func NewEtcdWatcherWithKey(clientPar *EtcdClientAPIv3, keyToWatch string, indexPar uint64, callbackPar types.CallbackHandler) (retVal *EtcdWatcher) {
+
+	client := clientPar.GetClientObj().(*clientv3.Client)
+
+	retVal = &EtcdWatcher{
+		client:   client,
+		Folder:   keyToWatch,
+		Index:    indexPar,
+		callback: callbackPar,
+		// dataStore: storePar,
+		log:        logrus.WithFields(logrus.Fields{"obj": "etcdv3", "watchtype": keyToWatch}),
+		objectType: types.Binding,
+		lock:       sync.RWMutex{},
+	}
 	return retVal
 }
 
@@ -160,35 +191,31 @@ func (this EtcdClientAPIv3) Set(keyname string, value string) (err error) {
 // }
 
 func GetFolderName(objectTypePar types.ObjectType) (retVal string) {
-	retVal = fmt.Sprintf("mysql-broker/%s", objectTypePar)
+	retVal = fmt.Sprintf("mysql-broker/%s/", string(objectTypePar))
 	return retVal
 }
 
 func (this *EtcdWatcher) RunAsync() (err error) {
-	opts := []clientv3.OpOption{clientv3.WithPrefix()}
+
 	contextWithCancelm, cancel := context.WithCancel(context.Background())
+	// var requestTimeout = 10 * time.Second
+	// contextWithCancelm, _ := context.WithTimeout(context.Background(), requestTimeout)
 	this.cancel = cancel
 	go func() {
 		for {
 			this.log.Infof("Watch started on %s", this.objectType)
-			var txError error
-			watchChan := this.client.Watch(contextWithCancelm, GetFolderName(this.objectType), opts...)
-			for resp := range watchChan {
-				txError = resp.Err()
-				if txError != nil {
-					this.log.Errorf("Watch channel returned err %v", resp.Err())
-					break
-				} else {
-					receivedEvents := resp.Events
-					this.log.Infof("Events received: %d", len(receivedEvents))
-					for _, event := range receivedEvents {
-						handleWatcherResponseEvent(event, this)
-					}
-					this.log.Info("Done")
+			watchChan := this.client.Watch(contextWithCancelm, GetFolderName(this.objectType), clientv3.WithPrefix())
+			r, open := <-watchChan
+			if !open {
+				this.log.Infof("Watch channel closed. Wait before retry watching...")
+			} else {
+				receivedEvents := r.Events
+				this.log.Infof("Events received: %d", len(receivedEvents))
+				for _, event := range receivedEvents {
+					handleWatcherResponseEvent(event, this)
 				}
+				this.log.Info("Done")
 			}
-			this.log.Errorf(txError.Error())
-			this.log.Infof("Watch channel closed. Wait before retry watching...")
 
 			select {
 			case <-contextWithCancelm.Done():
@@ -202,6 +229,33 @@ func (this *EtcdWatcher) RunAsync() (err error) {
 
 	}()
 	return err
+}
+
+func (this EtcdWatcher) ReloadCacheData() (lastIndex uint64, err error) {
+	opts := []clientv3.OpOption{clientv3.WithPrefix()}
+	resp, err := this.client.Get(context.Background(), GetFolderName(this.objectType), opts...)
+
+	for _, ev := range resp.Kvs {
+		// var retVal interface{}
+		// serviceID := ""
+		if this.objectType == types.Binding {
+			this.log.Infof("reload binding: %s", ev.Key)
+		} else if this.objectType == types.Instance {
+			this.log.Infof("reload instance: %s", ev.Key)
+		}
+	}
+
+	return 0, err
+}
+
+func (watcher EtcdWatcher) CancelWait() {
+	watcher.log.Debug("Cancel wait")
+	watcher.lock.RLock()
+	defer watcher.lock.RUnlock()
+
+	if watcher.cancel != nil {
+		watcher.cancel()
+	}
 }
 
 func handleWatcherResponseEvent(event *clientv3.Event, this *EtcdWatcher) {

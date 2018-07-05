@@ -3,8 +3,8 @@ package types
 type ObjectType string
 
 const (
-	Instance ObjectType = "Instance"
-	Binding             = "Binding"
+	Instance ObjectType = "instance"
+	Binding             = "binding"
 )
 
 type BranchType string

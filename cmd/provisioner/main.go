@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path"
 	"syscall"
+	"time"
 
 	"github.com/golang/glog"
 	"k8s.io/api/apps/v1beta1"
@@ -19,6 +20,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/cohenjo/mysql-osb/pkg/broker"
+	"github.com/cohenjo/mysql-osb/pkg/types"
 )
 
 var options struct {
@@ -71,35 +73,51 @@ func runWithContext(ctx context.Context) error {
 		fmt.Println("To use TLS with specified cert or key data, both --tlsCert and --tlsKey must be used")
 		return nil
 	}
+	addressPool := []string{"192.168.99.100:32379"}
+	client := broker.NewEtcdClient2(addressPool, 3)
+	defer client.Close()
+	callback := &broker.BindCallback{}
+	watcher := broker.NewEtcdWatcher(client, types.Binding, 0, callback)
+	watcher.ReloadCacheData()
+	watcher.RunAsync()
+	time.Sleep(10 * time.Second)
+	err := client.Set("mysql-broker/binding/ttt", "test")
+	if err != nil {
+		glog.V(4).Infof("error with etcd !\n")
+		// panic(err.Error())
+	}
 
+	glog.V(4).Infof("Done")
+	time.Sleep(100 * time.Second)
+	watcher.CancelWait()
 	// addr := ":" + strconv.Itoa(options.Port)
 
-	k8sClient, err := getKubernetesClient(options.KubeConfig)
-	if err != nil {
-		return err
-	}
+	// k8sClient, err := getKubernetesClient(options.KubeConfig)
+	// if err != nil {
+	// 	return err
+	// }
 
-	cfm := GenerateMySQLConfigMap()
-	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
-	if err != nil {
-		glog.V(4).Infof("can't create a config map - PANIC")
-		fmt.Println("fuck")
-		panic(err.Error())
-	}
+	// cfm := GenerateMySQLConfigMap()
+	// _, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
+	// if err != nil {
+	// 	glog.V(4).Infof("can't create a config map - PANIC")
+	// 	fmt.Println("fuck")
+	// 	panic(err.Error())
+	// }
 
-	ret := GenerateHelloDeployment()
-	fmt.Println(ret.GetName())
-	ret.SetName("others-mysql")
-	fmt.Println(ret.GetName())
+	// ret := GenerateHelloDeployment()
+	// fmt.Println(ret.GetName())
+	// ret.SetName("others-mysql")
+	// fmt.Println(ret.GetName())
 
-	sts, err := k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&ret)
-	if err != nil {
-		glog.V(4).Infof("can't create a service - PANIC")
-		fmt.Println("fuck")
-		panic(err.Error())
-	}
+	// sts, err := k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&ret)
+	// if err != nil {
+	// 	glog.V(4).Infof("can't create a service - PANIC")
+	// 	fmt.Println("fuck")
+	// 	panic(err.Error())
+	// }
 
-	fmt.Println(sts.Status)
+	// fmt.Println(sts.Status)
 	glog.Infof("Starting broker!")
 
 	return nil

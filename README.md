@@ -9,8 +9,8 @@ this requires a strong automation to spin up lots of small clusters - k8s is use
 This broker spnins up MySQL clusters in statful-sets which is exposes to the application artifacts according to usage bindings.
 this allows a many-many binding configuration which allows for greater flexability.
 
-the broker stores the provision and binding data in local MySQL (which can easily be backedup) and on etcd.
-the etcd is also used to provide cross-clusters comunications allowing to spin clusters between multiple k8s deployments (if they share an etcd cluster)
+the broker stores the provision and binding data in local MySQL (which can easily be backedup) or on etcd.
+the backenf is also used to provide cross-clusters comunications allowing to spin clusters between multiple k8s deployments 
 
 
 A go quickstart for creating service brokers that implement the [Open Service
@@ -22,7 +22,7 @@ project.
 
 ## Who should use this project?
 
-You should use this project if you manage houndreds of clusters and want to do it easier.
+You should use this project if you manage houndreds of MySQL clusters and want to do it easier.
 
 ## Prerequisites
 

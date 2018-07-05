@@ -1,19 +1,25 @@
 package broker
 
+import (
+	"fmt"
+)
+
 type BindCallback struct {
-	CreatedFunc func(obj interface{})
-	DeletedFunc func(obj interface{})
-	UpdatedFunc func(obj interface{})
+	key string
 }
 
 func (this BindCallback) ObjectCreated(key string, obj interface{}) {
-	this.CreatedFunc(obj)
+	this.key = key
+	fmt.Printf("create: %s\n", key)
 }
 
 func (this BindCallback) ObjectDeleted(key string, obj interface{}) {
-	this.DeletedFunc(obj)
+	this.key = key
+	fmt.Printf("delete: %s\n", key)
 }
 
 func (this BindCallback) ObjectUpdated(key string, obj interface{}) {
-	this.UpdatedFunc(obj)
+	this.key = key
+	fmt.Printf("update: %s\n", key)
+
 }

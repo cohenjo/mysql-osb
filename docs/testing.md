@@ -104,7 +104,7 @@ kubectl rollout status deployment mysql-broker-mysql-broker -n mysql-broker
 
 kubectl create -f ./manifests/service-instance.yaml
 
-svcat describe instance -n test-ns mysql-instance
+svcat describe instance -n test-ns mysql-editor-instance
 
 kubectl create -f DB_kube/db_broker/mysql-binding.yaml
 svcat describe binding -n test-ns mysql-binding
@@ -118,8 +118,8 @@ https://broker-skeleton-broker-skeleton.broker-skeleton.svc.cluster.local
 <!-- kubectl delete -n test-ns servicebindings mysql-binding -->
 <!-- kubectl delete -n test-ns serviceinstances mysql-instance -->
 
-svcat unbind -n test-ns mysql-instance
-svcat deprovision -n test-ns mysql-instance
+svcat unbind -n test-ns mysql-editor-instance
+svcat deprovision -n test-ns mysql-editor-instance
 
 kubectl delete clusterservicebrokers mysql-broker
 

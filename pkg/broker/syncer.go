@@ -2,18 +2,37 @@ package broker
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"time"
 
+	"github.com/cohenjo/mysql-osb/pkg/types"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 
 	"errors"
 )
 
 type EtcdClientAPIv3 struct {
 	client       *clientv3.Client
+	log          *logrus.Entry
 	timeout      time.Duration
 	NumOfRetries int
+}
+
+type EtcdWatcher struct {
+	client   *clientv3.Client
+	Folder   string
+	Index    uint64
+	callback types.CallbackHandler
+	cancel   context.CancelFunc
+	log      *logrus.Entry
+
+	dataStore  *types.DataStore
+	objectType types.ObjectType
+
+	lock sync.RWMutex
 }
 
 func GenerateEtcdClient(addressPool []string) (retVal *clientv3.Client, err error) {
@@ -30,7 +49,7 @@ func GenerateEtcdClient(addressPool []string) (retVal *clientv3.Client, err erro
 }
 
 func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
-	// log := logging.GetLog("etcd")
+	log := logrus.WithField("obj", "etcdv3")
 	addressPool := []string{"etcd-cluster-client:2379"}
 	client, err := GenerateEtcdClient(addressPool)
 	if err != nil {
@@ -43,7 +62,7 @@ func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
 
 	retValObj.client = client
 
-	// retValObj.log = log
+	retValObj.log = log
 	retValObj.timeout = time.Second * 20
 	retValObj.NumOfRetries = numOfRetries
 	retVal = retValObj
@@ -139,3 +158,71 @@ func (this EtcdClientAPIv3) Set(keyname string, value string) (err error) {
 // 	}
 // 	return retVal, 0, err
 // }
+
+func GetFolderName(objectTypePar types.ObjectType) (retVal string) {
+	retVal = fmt.Sprintf("mysql-broker/%s", objectTypePar)
+	return retVal
+}
+
+func (this *EtcdWatcher) RunAsync() (err error) {
+	opts := []clientv3.OpOption{clientv3.WithPrefix()}
+	contextWithCancelm, cancel := context.WithCancel(context.Background())
+	this.cancel = cancel
+	go func() {
+		for {
+			this.log.Infof("Watch started on %s", this.objectType)
+			var txError error
+			watchChan := this.client.Watch(contextWithCancelm, GetFolderName(this.objectType), opts...)
+			for resp := range watchChan {
+				txError = resp.Err()
+				if txError != nil {
+					this.log.Errorf("Watch channel returned err %v", resp.Err())
+					break
+				} else {
+					receivedEvents := resp.Events
+					this.log.Infof("Events received: %d", len(receivedEvents))
+					for _, event := range receivedEvents {
+						handleWatcherResponseEvent(event, this)
+					}
+					this.log.Info("Done")
+				}
+			}
+			this.log.Errorf(txError.Error())
+			this.log.Infof("Watch channel closed. Wait before retry watching...")
+
+			select {
+			case <-contextWithCancelm.Done():
+				this.log.Info("watcher canceled")
+				return
+			case <-time.After(5 * time.Second):
+				this.log.Info("Retry watch")
+			}
+
+		}
+
+	}()
+	return err
+}
+
+func handleWatcherResponseEvent(event *clientv3.Event, this *EtcdWatcher) {
+
+	var valueToParse []byte
+	var callbackToExecute func(key string, obj interface{})
+	var actioinTypeMarker string
+	if event.Type == 1 {
+		valueToParse = event.PrevKv.Value
+		callbackToExecute = this.callback.ObjectDeleted
+		actioinTypeMarker = "D"
+	} else {
+		valueToParse = event.Kv.Value
+		if event.Kv.Version == 1 {
+			callbackToExecute = this.callback.ObjectCreated
+			actioinTypeMarker = "C"
+		} else {
+			callbackToExecute = this.callback.ObjectUpdated
+			actioinTypeMarker = "U"
+		}
+	}
+	callbackToExecute(string(event.Kv.Key), valueToParse)
+	this.log.Infof("handled event: %s, for key: %s\n", actioinTypeMarker, string(event.Kv.Key))
+}

@@ -2,6 +2,7 @@ package broker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -133,6 +134,15 @@ func (this EtcdClientAPIv3) UploadFile(keyname string, filename string) (err err
 	return err
 }
 */
+
+func (this EtcdClientAPIv3) EtcIt(keyname string, value interface{}) (err error) {
+	b, err := json.Marshal(value)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	_, err = this.client.Put(context.Background(), keyname, string(b))
+	return err
+}
 
 func (this EtcdClientAPIv3) Set(keyname string, value string) (err error) {
 	_, err = this.client.Put(context.Background(), keyname, value)

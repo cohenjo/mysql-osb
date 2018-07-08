@@ -29,15 +29,19 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	b := &BusinessLogic{
 		async:              o.Async,
 		dbConnectionString: o.DBConnectionString,
+		etcClient:          NewEtcdClient(3),
 		instances:          make(map[string]*dbInstance, 10),
 		bindingMap:         make(map[string]*mySQLServiceBinding),
 	}
 	b.initSchema()
+	b.initWatchers()
 	return b, nil
 }
 
 type mySQLServiceBinding struct {
 	ID, InstanceID, ServiceID, PlanID string
+	artifact                          string
+	cluster                           string
 	BindResource                      *osb.BindResource
 	Params                            map[string]interface{}
 }
@@ -51,6 +55,9 @@ type BusinessLogic struct {
 	sync.RWMutex
 	// Add fields here! These fields are provided purely as an example
 	dbConnectionString string
+	etcClient          *EtcdClientAPIv3
+	instanceWatcher    *EtcdWatcher
+	bindWatcher        *EtcdWatcher
 	instances          map[string]*dbInstance
 	bindingMap         map[string]*mySQLServiceBinding
 }
@@ -196,8 +203,17 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 		}
 	}
 
+	newBinding := &mySQLServiceBinding{
+		artifact:     instance.Params["artifact"].(string),
+		cluster:      instance.Params["cluster"].(string),
+		InstanceID:   request.InstanceID,
+		BindResource: request.BindResource,
+	}
+
+	b.bindingMap[request.BindingID] = newBinding
 	glog.Infof("Created mysql Service Binding:\n%v\n",
 		b.bindingMap[request.BindingID])
+	b.etcClient.EtcIt(request.BindingID, newBinding)
 
 	// Generate service binding credentials.
 	creds := make(map[string]interface{})

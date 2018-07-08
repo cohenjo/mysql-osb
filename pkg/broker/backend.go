@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"path"
 
+	"github.com/cohenjo/mysql-osb/pkg/types"
 	_ "github.com/go-sql-driver/mysql" // import the mysql driver
 	"github.com/golang/glog"
 
@@ -58,6 +59,20 @@ Size integer
 		glog.V(4).Infof("error with db !\n")
 		panic(err.Error())
 	}
+}
+
+func (b *BusinessLogic) initWatchers() {
+	bindcallback := &BindCallback{}
+	bindwatcher := NewEtcdWatcher(b.etcClient, types.Binding, 0, bindcallback)
+	bindwatcher.ReloadCacheData()
+	bindwatcher.RunAsync()
+	b.bindWatcher = bindwatcher
+
+	callback := &BindCallback{}
+	watcher := NewEtcdWatcher(b.etcClient, types.Instance, 0, callback)
+	watcher.ReloadCacheData()
+	watcher.RunAsync()
+	b.instanceWatcher = watcher
 }
 
 func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {

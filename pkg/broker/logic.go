@@ -204,8 +204,8 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 	}
 
 	newBinding := &mySQLServiceBinding{
-		artifact:     instance.Params["artifact"].(string),
-		cluster:      instance.Params["cluster"].(string),
+		artifact:     request.Parameters["artifact"].(string),
+		cluster:      request.Parameters["cluster"].(string),
 		InstanceID:   request.InstanceID,
 		BindResource: request.BindResource,
 	}

@@ -68,7 +68,7 @@ func (b *BusinessLogic) initWatchers() {
 	bindwatcher.RunAsync()
 	b.bindWatcher = bindwatcher
 
-	callback := &BindCallback{}
+	callback := &InstanceCallback{}
 	watcher := NewEtcdWatcher(b.etcClient, types.Instance, 0, callback)
 	watcher.ReloadCacheData()
 	watcher.RunAsync()

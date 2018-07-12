@@ -140,6 +140,7 @@ func (this EtcdClientAPIv3) EtcIt(keyname string, value interface{}) (err error)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+	glog.V(4).Infof("Creating key: %s in etcd", keyname)
 	_, err = this.client.Put(context.Background(), keyname, string(b))
 	return err
 }

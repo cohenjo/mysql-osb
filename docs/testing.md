@@ -106,8 +106,8 @@ kubectl create -f ./manifests/service-instance.yaml
 
 svcat describe instance -n test-ns mysql-editor-instance
 
-kubectl create -f DB_kube/db_broker/mysql-binding.yaml
-svcat describe binding -n test-ns mysql-binding
+kubectl create -f manifests/service-binding.yaml
+svcat describe binding -n test-ns mysql-editor-binding
 
 kubectl get secrets -n test-ns
 

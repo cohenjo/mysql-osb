@@ -14,8 +14,10 @@ func (this BindCallback) ObjectCreated(key string, obj interface{}) {
 	this.key = key
 	fmt.Printf("create: %s\n", key)
 	var mb mySQLServiceBinding
-	mb = obj.(mySQLServiceBinding)
-	this.bindingMap[key] = &mb
+	err := json.Unmarshal(obj.([]byte), &mb)
+	if err != nil {
+		fmt.Printf("damn")
+	}
 }
 
 func (this BindCallback) ObjectDeleted(key string, obj interface{}) {
@@ -28,8 +30,10 @@ func (this BindCallback) ObjectUpdated(key string, obj interface{}) {
 	this.key = key
 	fmt.Printf("create: %s\n", key)
 	var mb mySQLServiceBinding
-	mb = obj.(mySQLServiceBinding)
-	this.bindingMap[key] = &mb
+	err := json.Unmarshal(obj.([]byte), &mb)
+	if err != nil {
+		fmt.Printf("damn")
+	}
 
 }
 

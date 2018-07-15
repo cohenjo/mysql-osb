@@ -61,6 +61,7 @@ Size integer
 	}
 }
 
+// initWatchers spins up watchers for Bind & instance information over etcd.
 func (b *BusinessLogic) initWatchers() {
 	bindcallback := &BindCallback{}
 	bindwatcher := NewEtcdWatcher(b.etcClient, types.Binding, 0, bindcallback)
@@ -109,7 +110,8 @@ func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {
 
 func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
-	glog.V(4).Infof("InstanceL %s !\n", request.InstanceID)
+	req := fmt.Sprintf("%v", request)
+	glog.Infof("Got instance request: %s!\n", req)
 	glog.V(4).Infof("service:  %s !\n", request.ServiceID)
 	glog.V(4).Infof("plan:     %s !\n", request.PlanID)
 	glog.V(4).Infof("Paramet:  %s !\n", request.Parameters)

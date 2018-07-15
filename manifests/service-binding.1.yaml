@@ -1,0 +1,11 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: mysql-pages-binding
+  namespace: test-ns
+spec:
+  instanceRef:
+    name: mysql-editor-instance
+  parameters:
+    artifact: com.company.pages
+    cluster: editor 

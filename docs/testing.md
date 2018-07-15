@@ -31,12 +31,13 @@ kubectl config current-context
 kubectl config use-context minikubeBroker
 
 
+see: https://github.com/kubernetes-incubator/service-catalog/tree/master/charts/catalog
 helm repo add svc-cat https://svc-catalog-charts.storage.googleapis.com
 
 helm search service-catalog
 
 helm install svc-cat/catalog \
-    --name catalog --namespace catalog
+    --name catalog --namespace catalog --values catalog_values.yaml
 
 
 

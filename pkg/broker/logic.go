@@ -3,6 +3,7 @@ package broker
 import (
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"net/http"
 	"sync"
 
@@ -38,14 +39,6 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	return b, nil
 }
 
-type mySQLServiceBinding struct {
-	ID, InstanceID, ServiceID, PlanID string
-	artifact                          string
-	cluster                           string
-	BindResource                      *osb.BindResource
-	Params                            map[string]interface{}
-}
-
 // BusinessLogic provides an implementation of the broker.BusinessLogic
 // interface.
 type BusinessLogic struct {
@@ -69,6 +62,7 @@ func truePtr() *bool {
 	return &b
 }
 
+// GetCatalog - Returns the Catalog, currently a single offering - MySQL DB.
 func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogResponse, error) {
 	// Your catalog business logic goes here
 	response := &broker.CatalogResponse{}
@@ -98,6 +92,7 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 	return response, nil
 }
 
+// Provision creates a staeful set in the Kube cluster
 func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.RequestContext) (*broker.ProvisionResponse, error) {
 	// Your provision business logic goes here
 
@@ -146,6 +141,8 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 	return &response, nil
 }
 
+// Deprovision release a DB cluster resources back to the pool
+// TODO - implemenet this
 func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.RequestContext) (*broker.DeprovisionResponse, error) {
 	// Your deprovision business logic goes here
 
@@ -170,12 +167,16 @@ func (b *BusinessLogic) LastOperation(request *osb.LastOperationRequest, c *brok
 	return nil, nil
 }
 
+// Bind function binds an artifact to a DB instance.
 func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext) (*broker.BindResponse, error) {
 	// Your bind business logic goes here
 
 	// example implementation:
 	b.Lock()
 	defer b.Unlock()
+
+	req := fmt.Sprintf("%v", request)
+	glog.Infof("Got binding request: %s!\n", req)
 
 	response := &broker.BindResponse{}
 
@@ -208,7 +209,20 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 		cluster:      request.Parameters["cluster"].(string),
 		InstanceID:   request.InstanceID,
 		BindResource: request.BindResource,
+		Params:       request.Parameters,
 	}
+
+	/*###################################################################################################*/
+	/*###################################################################################################*/
+	newBinding.Params["name"] = request.BindingID
+	algorithm := fnv.New64a()
+	s := fmt.Sprintf("%v", newBinding.Params)
+	algorithm.Write([]byte(s))
+	fmt.Printf("%d \n", algorithm.Sum64())
+	newBinding.crc = algorithm.Sum64()
+
+	/*###################################################################################################*/
+	/*###################################################################################################*/
 
 	b.bindingMap[request.BindingID] = newBinding
 	glog.Infof("Created mysql Service Binding:\n%v\n",
@@ -253,6 +267,15 @@ func (b *BusinessLogic) ValidateBrokerAPIVersion(version string) error {
 }
 
 // example types
+// mySQLServiceBinding is a type that holds information about a binding between artifact and db
+type mySQLServiceBinding struct {
+	ID, InstanceID, ServiceID, PlanID string
+	artifact                          string
+	cluster                           string
+	BindResource                      *osb.BindResource
+	Params                            map[string]interface{}
+	crc                               uint64
+}
 
 // dbInstance is a type that holds information about a db instance
 type dbInstance struct {
@@ -260,6 +283,7 @@ type dbInstance struct {
 	ServiceID string
 	PlanID    string
 	Params    map[string]interface{}
+	crc       uint64
 }
 
 func (i *dbInstance) Match(other *dbInstance) bool {

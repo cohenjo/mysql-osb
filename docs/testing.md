@@ -10,7 +10,7 @@ eval $(minikube docker-env)
 ## setup rbac
 <!-- kubectl create serviceaccount tiller --namespace kube-system -->
 kubectl create -f DB_kube/rbac-config.yaml
-helm init --upgrade 
+helm init --upgrade
 <!-- helm init --upgrade --tiller-tls-verify -->
 
 kubectl create clusterrolebinding tiller-cluster-admin \
@@ -40,6 +40,7 @@ helm install svc-cat/catalog \
     --name catalog --namespace catalog --values catalog_values.yaml
 
 
+helm install svc-cat/catalog --name catalog --namespace db-catalog --values ./environment/Wix/catalog_values.yaml
 
 <!-- curl -sLO https://download.svcat.sh/cli/latest/darwin/amd64/svcat
 chmod +x ./svcat

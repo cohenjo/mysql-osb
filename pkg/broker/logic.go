@@ -30,7 +30,7 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	b := &BusinessLogic{
 		async:              o.Async,
 		dbConnectionString: o.DBConnectionString,
-		etcClient:          NewEtcdClient(3),
+		etcClient:          NewEtcdClient1(o.EtcdEndpoints, 3),
 		instances:          make(map[string]*dbInstance, 10),
 		bindingMap:         make(map[string]*mySQLServiceBinding),
 	}

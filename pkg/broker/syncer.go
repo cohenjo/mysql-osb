@@ -70,6 +70,11 @@ func NewEtcdClient2(addressPool []string, numOfRetries int) (retVal *EtcdClientA
 	return retVal
 }
 
+func NewEtcdClient1(adress string, numOfRetries int) (retVal *EtcdClientAPIv3) {
+	addressPool := []string{adress}
+	return NewEtcdClient2(addressPool, numOfRetries)
+}
+
 func NewEtcdClient(numOfRetries int) (retVal *EtcdClientAPIv3) {
 	addressPool := []string{"etcd-cluster-client:2379"}
 	return NewEtcdClient2(addressPool, numOfRetries)

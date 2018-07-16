@@ -145,8 +145,9 @@ func (this EtcdClientAPIv3) EtcIt(keyname string, value interface{}) (err error)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	glog.V(4).Infof("Creating key: %s in etcd", keyname)
-	_, err = this.client.Put(context.Background(), keyname, string(b))
+	newkey := fmt.Sprintf("/db/mysql-broker/%s", keyname)
+	glog.V(4).Infof("Creating key: %s in etcd", newkey)
+	_, err = this.client.Put(context.Background(), newkey, string(b))
 	return err
 }
 
@@ -207,7 +208,7 @@ func (this EtcdClientAPIv3) Set(keyname string, value string) (err error) {
 // }
 
 func GetFolderName(objectTypePar types.ObjectType) (retVal string) {
-	retVal = fmt.Sprintf("mysql-broker/%s/", string(objectTypePar))
+	retVal = fmt.Sprintf("/db/mysql-broker/%s/", string(objectTypePar))
 	return retVal
 }
 

@@ -34,8 +34,11 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 		instances:          make(map[string]*dbInstance, 10),
 		bindingMap:         make(map[string]*mySQLServiceBinding),
 	}
+	glog.V(4).Infof("created Buisness logic - starting Initialization,  !\n")
 	b.initSchema()
+	glog.V(4).Infof("Starting to watch ETCD  !\n")
 	b.initWatchers()
+	glog.V(4).Infof("Done  !\n")
 	return b, nil
 }
 

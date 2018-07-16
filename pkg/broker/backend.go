@@ -63,12 +63,14 @@ Size integer
 
 // initWatchers spins up watchers for Bind & instance information over etcd.
 func (b *BusinessLogic) initWatchers() {
+	glog.V(4).Infof("Init Bind watcher")
 	bindcallback := &BindCallback{}
 	bindwatcher := NewEtcdWatcher(b.etcClient, types.Binding, 0, bindcallback)
 	bindwatcher.ReloadCacheData()
 	bindwatcher.RunAsync()
 	b.bindWatcher = bindwatcher
 
+	glog.V(4).Infof("Init instance watcher")
 	callback := &InstanceCallback{
 		InstanceingMap: make(map[string]*dbInstance, 10),
 	}
@@ -76,20 +78,19 @@ func (b *BusinessLogic) initWatchers() {
 	watcher.ReloadCacheData()
 	watcher.RunAsync()
 	b.instanceWatcher = watcher
+	glog.V(4).Infof("All watchers Initialized")
 }
 
 func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {
 	glog.V(4).Infof("storing InstanceL in etcd: %s !\n", request.InstanceID)
-	key := fmt.Sprintf("mysql-broker/instance/%s", i.Params["cluster"].(string))
+	key := fmt.Sprintf("/db/mysql-broker/instance/%s", i.Params["cluster"].(string))
 	value, _ := i.String()
 
 	glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof("######################################################################################################")
 	glog.V(4).Infof("put in etcd:  %s, %s !\n", key, value)
-	client := NewEtcdClient(3)
 	glog.V(4).Infof("####################################### Created client ###################################")
-	defer client.Close()
-	err := client.Set(key, value)
+	err := b.etcClient.Set(key, value)
 	if err != nil {
 		glog.V(4).Infof("error with etcd !\n")
 		// panic(err.Error())
@@ -97,7 +98,7 @@ func (b *BusinessLogic) etcIt(request *osb.ProvisionRequest, i *dbInstance) {
 
 	glog.V(4).Infof("Done")
 
-	gfe, err := client.Get(key)
+	gfe, err := b.etcClient.Get(key)
 	if err != nil {
 		glog.V(4).Infof("error with etcd !\n")
 		// panic(err.Error())

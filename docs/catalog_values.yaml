@@ -1,5 +1,0 @@
-apiserver:
-  storage:
-    etcd:
-      useEmbedded: false
-      servers: http://etcd-cluster-client.mysql-broker:2379

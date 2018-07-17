@@ -30,6 +30,8 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	b := &BusinessLogic{
 		async:              o.Async,
 		dbConnectionString: o.DBConnectionString,
+		dbNamespace:        o.DBNamespace,
+		piiDbNamespace:     o.PiiDBNamespace,
 		etcClient:          NewEtcdClient1(o.EtcdEndpoints, 3),
 		instances:          make(map[string]*dbInstance, 10),
 		bindingMap:         make(map[string]*mySQLServiceBinding),
@@ -51,6 +53,8 @@ type BusinessLogic struct {
 	sync.RWMutex
 	// Add fields here! These fields are provided purely as an example
 	dbConnectionString string
+	dbNamespace        string
+	piiDbNamespace     string
 	etcClient          *EtcdClientAPIv3
 	instanceWatcher    *EtcdWatcher
 	bindWatcher        *EtcdWatcher

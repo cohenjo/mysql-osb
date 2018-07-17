@@ -12,6 +12,8 @@ type Options struct {
 	Async              bool
 	DBConnectionString string
 	EtcdEndpoints      string
+	DBNamespace        string
+	PiiDBNamespace     string
 }
 
 // AddFlags is a hook called to initialize the CLI flags for broker options.
@@ -22,4 +24,6 @@ func AddFlags(o *Options) {
 	flag.BoolVar(&o.Async, "async", false, "Indicates whether the broker is handling the requests asynchronously.")
 	flag.StringVar(&o.DBConnectionString, "db-connection", "root:password@tcp(mysql:3306)/broker", "database connection")
 	flag.StringVar(&o.EtcdEndpoints, "etcd-endpoint", "etcd-cluster-client:2379", "etcd endpoint")
+	flag.StringVar(&o.DBNamespace, "db-namespace", "test-ns", "namespace for db clusters")
+	flag.StringVar(&o.PiiDBNamespace, "pii-db-namespace", "test-ns", "namespace for pii db clusters")
 }

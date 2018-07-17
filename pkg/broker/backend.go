@@ -175,7 +175,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
 	ret := i.GenerateService()
 
-	svc, err := k8sClient.CoreV1().Services("test-ns").Create(&ret)
+	svc, err := k8sClient.CoreV1().Services(b.dbNamespace).Create(&ret)
 	if err != nil {
 		glog.V(4).Infof("can't create a service - PANIC")
 		// panic(err.Error())
@@ -184,7 +184,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 	glog.V(4).Infof("Debug: service status %s\n", svc.Status.String())
 
 	cfm := i.GenerateMySQLConfigMap()
-	_, err = k8sClient.CoreV1().ConfigMaps("test-ns").Create(&cfm)
+	_, err = k8sClient.CoreV1().ConfigMaps(b.dbNamespace).Create(&cfm)
 	if err != nil {
 		glog.V(4).Infof("can't create a config map - PANIC, %s\n", err.Error())
 		// fmt.Println("fuck")
@@ -194,7 +194,7 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 
 	retss := i.GenerateStatefulSets()
 
-	_, err = k8sClient.AppsV1beta1().StatefulSets("test-ns").Create(&retss)
+	_, err = k8sClient.AppsV1beta1().StatefulSets(b.dbNamespace).Create(&retss)
 	if err != nil {
 		glog.V(4).Infof("can't create a StatefulSets - PANIC")
 		glog.V(4).Infof(err.Error())

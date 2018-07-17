@@ -50,6 +50,14 @@ spec:
         - --etcd-endpoint
         - {{ .Values.etcd }}
         {{- end}}
+        {{- if .Values.dbnamespace}}
+        - --db-namespace
+        - {{ .Values.dbnamespace }}
+        {{- end}}
+        {{- if .Values.piidbnamespace}}
+        - --pii-db-namespace 
+        - {{ .Values.piidbnamespace }}
+        {{- end}}
         - -v
         - "5"
         - -logtostderr

@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"path"
+	"strconv"
 
 	"github.com/cohenjo/mysql-osb/pkg/types"
 	_ "github.com/go-sql-driver/mysql" // import the mysql driver
@@ -288,7 +289,7 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 			GroupUUID string
 		}{
 			ServerID:  index,
-			LocalIP:   "mysql-" + i.Params["cluster"].(string) + "-" + string(index),
+			LocalIP:   "mysql-" + i.Params["cluster"].(string) + "-" + strconv.Itoa(index),
 			SeedIP:    "mysql-" + i.Params["cluster"].(string) + "-0",
 			GroupUUID: guid.String(),
 		}
@@ -301,7 +302,7 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 		}
 
 		result := tpl.String()
-		parsedData.Data["mysql-"+string(index)] = result
+		parsedData.Data["mysql-"+strconv.Itoa(index)] = result
 	}
 
 	return parsedData

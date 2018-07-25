@@ -2,7 +2,7 @@ apiVersion: servicecatalog.k8s.io/v1beta1
 kind: ServiceInstance
 metadata:
   name: mysql-editor-instance
-  namespace: test-ns
+  namespace: db-surprising-namespace
 spec:
   clusterServiceClassExternalName: mysql-artifact-service
   clusterServicePlanExternalName: default

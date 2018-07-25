@@ -1,0 +1,24 @@
+{{ define "config" }}
+[mysqld]
+
+# server configuration
+#datadir=<full_path_to_data>/data/s1
+#basedir=<full_path_to_bin>/mysql-8.0/
+
+#port=24801
+#socket=<full_path_to_sock_dir>/s1.sock
+
+server_id= {{ .ServerID }}
+gtid_mode=ON
+enforce_gtid_consistency=ON
+binlog_checksum=NONE
+
+# Group replication settings
+
+loose-group_replication_group_name={{ .GroupUUID }}
+loose-group_replication_start_on_boot=off
+loose-group_replication_local_address= "{{ .LocalIP }}:33061"
+loose-group_replication_group_seeds= "{{ .SeedIP }}:33061"
+loose-group_replication_bootstrap_group=off
+
+{{ end }}

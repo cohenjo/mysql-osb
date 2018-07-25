@@ -22,7 +22,7 @@
           "initContainers": [
             {
               "name": "init-mysql",
-              "image": "mysql:5.7",
+              "image": "mysql:8",
               "command": [
                 "bash",
                 "-c",
@@ -63,7 +63,7 @@
           "containers": [
             {
               "name": "mysql",
-              "image": "mysql:5.7",
+              "image": "mysql:8",
               "env": [
                 {
                   "name": "MYSQL_ALLOW_EMPTY_PASSWORD",

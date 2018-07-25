@@ -1,9 +1,11 @@
 package broker
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"path"
 
@@ -11,8 +13,10 @@ import (
 	_ "github.com/go-sql-driver/mysql" // import the mysql driver
 	"github.com/golang/glog"
 
+	"github.com/google/uuid"
 	"k8s.io/api/apps/v1beta1"
 	api_v1 "k8s.io/api/core/v1"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/mitchellh/mapstructure"
@@ -73,6 +77,7 @@ func (b *BusinessLogic) initWatchers() {
 	glog.V(4).Infof("Init instance watcher")
 	callback := &InstanceCallback{
 		InstanceingMap: make(map[string]*dbInstance, 10),
+		bl:             b,
 	}
 	watcher := NewEtcdWatcher(b.etcClient, types.Instance, 0, callback)
 	watcher.ReloadCacheData()
@@ -253,6 +258,7 @@ GenerateMySQLConfigMap generates the configuration map for a new cluster
 func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	var fileContent []byte
 	parsedData := api_v1.ConfigMap{}
+	numServers := i.Params["NumOfReplicas"].(int)
 
 	fileContent, err := ioutil.ReadFile(path.Join("/opt/servicebroker/templates", "config.json"))
 	if err != nil {
@@ -270,6 +276,34 @@ func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	labels = make(map[string]string)
 	labels["app"] = "mysql-" + i.Params["cluster"].(string)
 	parsedData.SetLabels(labels)
+
+	t := template.Must(template.ParseFiles(path.Join("/opt/servicebroker/templates", "./my.cnf.tmpl")))
+	guid := uuid.New()
+	for index := 0; index < numServers; index++ {
+
+		data := struct {
+			ServerID  int
+			LocalIP   string
+			SeedIP    string
+			GroupUUID string
+		}{
+			ServerID:  index,
+			LocalIP:   "mysql-" + i.Params["cluster"].(string) + "-" + string(index),
+			SeedIP:    "mysql-" + i.Params["cluster"].(string) + "-0",
+			GroupUUID: guid.String(),
+		}
+
+		var tpl bytes.Buffer
+		err := t.ExecuteTemplate(&tpl, "config", data)
+		if err != nil {
+			glog.V(4).Infof("Failed to execute template ! - Panic")
+			print(err)
+		}
+
+		result := tpl.String()
+		parsedData.Data["mysql-"+string(index)] = result
+	}
+
 	return parsedData
 }
 
@@ -321,4 +355,20 @@ func getKubernetesClient(kubeConfigPath string) (clientset.Interface, error) {
 		}
 	}
 	return clientset.NewForConfig(clientConfig)
+}
+
+// Verify makes sure the db instance exists in the k8s cluster
+func (b *BusinessLogic) Verify(i *dbInstance) bool {
+	k8sClient, err := getKubernetesClient("")
+	if err != nil {
+		glog.V(4).Infof("can't create a client - PANIC")
+		panic(err.Error())
+	}
+	getOpts := &meta_v1.GetOptions{}
+	_, err = k8sClient.AppsV1().StatefulSets(b.dbNamespace).Get("mysql-"+i.Params["cluster"].(string), *getOpts)
+	if err != nil {
+		return false
+	}
+
+	return true
 }

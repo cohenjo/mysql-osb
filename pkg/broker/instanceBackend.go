@@ -8,6 +8,7 @@ import (
 type InstanceCallback struct {
 	key            string
 	InstanceingMap map[string]*dbInstance
+	bl             *BusinessLogic
 }
 
 func (this InstanceCallback) ObjectCreated(key string, obj interface{}) {
@@ -19,6 +20,7 @@ func (this InstanceCallback) ObjectCreated(key string, obj interface{}) {
 		fmt.Printf("damn")
 	}
 	this.InstanceingMap[key] = &mb
+
 }
 
 func (this InstanceCallback) ObjectDeleted(key string, obj interface{}) {

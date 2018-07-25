@@ -258,7 +258,7 @@ GenerateMySQLConfigMap generates the configuration map for a new cluster
 func (i *dbInstance) GenerateMySQLConfigMap() (retVal api_v1.ConfigMap) {
 	var fileContent []byte
 	parsedData := api_v1.ConfigMap{}
-	numServers := i.Params["NumOfReplicas"].(int)
+	numServers := int(i.Params["NumOfReplicas"].(float64))
 
 	fileContent, err := ioutil.ReadFile(path.Join("/opt/servicebroker/templates", "config.json"))
 	if err != nil {

@@ -259,7 +259,7 @@ func (this EtcdWatcher) ReloadCacheData() (lastIndex uint64, err error) {
 			this.log.Infof("reload binding: %s", ev.Key)
 		} else if this.objectType == types.Instance {
 			this.log.Infof("reload instance: %s", ev.Key)
-			this.callback.ObjectCreated(ev.Key, string(ev.Value)))
+			this.callback.ObjectCreated(string(ev.Key), ev.Value)
 		}
 	}
 

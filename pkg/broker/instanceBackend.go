@@ -20,7 +20,10 @@ func (this InstanceCallback) ObjectCreated(key string, obj interface{}) {
 		fmt.Printf("damn")
 	}
 	this.InstanceingMap[key] = &mb
-	this.bl.Verify(&mb)
+	exists := this.bl.Verify(&mb)
+	if !exists {
+		this.bl.generate(&mb)
+	}
 
 }
 
@@ -39,7 +42,10 @@ func (this InstanceCallback) ObjectUpdated(key string, obj interface{}) {
 		fmt.Printf("damn")
 	}
 	this.InstanceingMap[key] = &mb
-	this.bl.Verify(&mb)
+	exists := this.bl.Verify(&mb)
+	if !exists {
+		this.bl.generate(&mb)
+	}
 
 }
 

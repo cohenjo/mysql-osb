@@ -172,13 +172,13 @@ func (b *BusinessLogic) order(request *osb.ProvisionRequest, i *dbInstance) {
 		// and then print out the tag's Name attribute
 		glog.V(4).Infof("select: %s !\n", tag.InstanceID)
 	}
-	i.generate()
+	b.generate(i)
 
 	glog.V(4).Infof("Debug: Done")
 
 }
 
-func (i *dbInstance) generate() {
+func (b *BusinessLogic) generate(i *dbInstance) {
 
 	k8sClient, err := getKubernetesClient("")
 	if err != nil {

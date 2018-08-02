@@ -368,8 +368,9 @@ func (b *BusinessLogic) Verify(i *dbInstance) bool {
 	getOpts := &meta_v1.GetOptions{}
 	_, err = k8sClient.AppsV1().StatefulSets(b.dbNamespace).Get("mysql-"+i.Params["cluster"].(string), *getOpts)
 	if err != nil {
+		glog.V(4).Infof("couldn't find the instance !\n")
 		return false
 	}
-
+	glog.V(4).Infof("Found the db instance!\n")
 	return true
 }

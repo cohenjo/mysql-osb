@@ -12,7 +12,7 @@ spec:
     Artifact: com.company.ecom.catalog
     BI: false
     Backup: true
-    RAM: 32
-    CPU: 8
+    RAM: 800m
+    CPU: 4
     Segment: editor
     NumOfReplicas: 3

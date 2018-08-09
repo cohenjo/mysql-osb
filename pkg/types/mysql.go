@@ -47,3 +47,15 @@ var Plan = osb.Plan{
 		},
 	},
 }
+
+// MySQLResources sets the limits and requests for a container
+type MySQLResources struct {
+	Requests CPUAndMem `json:"requests,omitempty"`
+	Limits   CPUAndMem `json:"limits,omitempty"`
+}
+
+// CPUAndMem defines how many cpu and ram the container will request/limit
+type CPUAndMem struct {
+	CPU    string `json:"cpu"`
+	Memory string `json:"memory"`
+}

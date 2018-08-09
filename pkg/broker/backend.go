@@ -168,8 +168,15 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 			vol.ConfigMap.Name = "mysql-" + i.Params["cluster"].(string)
 		}
 	}
+	NumOfReplicas := i.Params["NumOfReplicas"].(int32)
+	parsedData.Spec.Replicas = &NumOfReplicas
 	parsedData.Spec.Selector.MatchLabels = labels
 	parsedData.Spec.Template.ObjectMeta.Labels = labels
+	resList := generateResourceList(i.Params["CPU"].(string), i.Params["RAM"].(string))
+	parsedData.Spec.Template.Spec.Containers[0].Resources.Requests = resList
+
+	// parsedData.Spec.VolumeClaimTemplates[0].Spec.Resources.Requests.storage = i.Params["Size"].(int)
+
 	glog.V(4).Infof("######################################################################################################")
 	// glog.V(4).Infof("######################################################################################################")
 	// glog.V(4).Infof(parsedData.String())

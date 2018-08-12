@@ -7,7 +7,7 @@ spec:
   clusterServiceClassExternalName: mysql-artifact-service
   clusterServicePlanExternalName: default
   parameters:
-    Size: 30
+    Size: 10Gi
     cluster: ecom
     Artifact: com.company.ecom.catalog
     BI: false

@@ -175,7 +175,7 @@ func (i *dbInstance) GenerateStatefulSets() (retVal v1beta1.StatefulSet) {
 	resList := generateResourceList(i.Params["CPU"].(string), i.Params["RAM"].(string))
 	parsedData.Spec.Template.Spec.Containers[0].Resources.Requests = resList
 
-	// parsedData.Spec.VolumeClaimTemplates[0].Spec.Resources.Requests.storage = i.Params["Size"].(int)
+	parsedData.Spec.VolumeClaimTemplates[0].Spec.Resources = generateStorageRequest(i.Params["Size"].(string))
 
 	glog.V(4).Infof("######################################################################################################")
 	// glog.V(4).Infof("######################################################################################################")

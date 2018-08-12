@@ -33,10 +33,10 @@ func generateResourceList(cpu string, memory string) corev1.ResourceList {
 	return resources
 }
 
-func generateStorageRequest(storage string) corev1.ResourceList {
-	resources := corev1.ResourceList{}
+func generateStorageRequest(storage string) corev1.ResourceRequirements {
+	resources := corev1.ResourceRequirements{}
 	if storage != "" {
-		resources[corev1.ResourceRequestsStorage], _ = resource.ParseQuantity(storage)
+		resources.Requests[corev1.ResourceRequestsStorage], _ = resource.ParseQuantity(storage)
 	}
 	return resources
 }
